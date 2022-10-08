@@ -12,9 +12,9 @@ let portRangeIndex=0;
 do{  
   let failed=false
   try{
-    app.listen(portRange[i++], () => console.log("Server started !"))
+    app.listen(portRange[portRangeIndex++], () => console.log("Server started !"))
   } catch(failure){
-    console.log("ERROR - failed using port "+portRange[i-1]);
+    console.log("ERROR - failed using port "+portRange[portRangeIndex-1]);
     failed=true;
   }
 } while(failed);
