@@ -1,4 +1,4 @@
-'use strict';
+use strict; 
 const express = require('express')
 const fs = require('fs')
 const cors = require('cors')
@@ -9,10 +9,12 @@ const portRange = [80,8080];
 //const serverless = require('serverless-http');
 app.use(cors())
 let portRangeIndex=0;
+let failed=false
 do{  
-  let failed=false
   try{
+    failed=false
     app.listen(portRange[portRangeIndex++], () => console.log("Server started !"))
+    console.log("SUCCESS - server running on port "+portRange[portRangeIndex-1]);
   } catch(failure){
     console.log("ERROR - failed using port "+portRange[portRangeIndex-1]);
     failed=true;
