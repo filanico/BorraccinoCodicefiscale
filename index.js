@@ -1,9 +1,11 @@
+'use strict';
 const express = require('express')
 const fs = require('fs')
 const cors = require('cors')
 const app = express();
+const serverless = require('serverless-http');
 app.use(cors())
-app.listen(80, () => console.log("Server started !"))
+//app.listen(80, () => console.log("Server started !"))
 
 app.get('/', function(req, res) {
   const search = req.query.search.toUpperCase();
@@ -19,3 +21,6 @@ app.get('/', function(req, res) {
   res.json(words);
   //res.send("OK");
 })
+
+
+module.exports.handler = serverless(app);
