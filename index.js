@@ -3,9 +3,11 @@ const express = require('express')
 const fs = require('fs')
 const cors = require('cors')
 const app = express();
-const serverless = require('serverless-http');
+const port = process.env.PORT || 3001;
+
+//const serverless = require('serverless-http');
 app.use(cors())
-//app.listen(80, () => console.log("Server started !"))
+app.listen(port, () => console.log("Server started !"))
 
 app.get('/', function(req, res) {
   const search = req.query.search.toUpperCase();
@@ -23,4 +25,4 @@ app.get('/', function(req, res) {
 })
 
 
-module.exports.handler = serverless(app);
+//module.exports.handler = serverless(app);
