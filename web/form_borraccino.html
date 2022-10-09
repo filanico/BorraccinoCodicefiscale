@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./codiceFiscale.js"></script>
+    <style>
+        #codice_fiscale{
+          text-align: center;
+          width: 100%;
+          border: 2px solid;
+          padding: 10px;
+          border-radius: 4px;
+          letter-spacing: 9px;
+          text-shadow: 3px 4px 0px #e5e5e5;
+          color: #4f4c4c;
+          font-size: 22px;
+        }
+        #elenco-citta {
+          display: none;
+          width: 100%;
+          list-style: none;
+          background: #efefef;
+          padding: 4px;
+          cursor: pointer;
+        }
+    </style>
+    <script>
+      var input_citta = null;
+      function citta_seleziona(codice,citta){
+        codice_citta = codice;
+        var elenco_citta = document.querySelector('#elenco-citta');
+        input_citta.value = citta;
+        elenco_citta.style.display = 'none';
+      }
+     
+      function calcola(){
+          var nome = document.querySelector('#nome').value;
+          var cognome = document.querySelector('#cognome').value;
+          var data_nascita = document.querySelector('#data_nascita').value;
+          var sesso = document.querySelector('#sesso').value;
+          var [anno,mese,giorno] = document.querySelector('#data_nascita').value.split('-');
+          var citta = document.querySelector('#citta').value;
+          var codiceFiscale = calcolaCodice(
+              nome,
+              cognome,
+              giorno,
+              mese,
+              anno,
+              sesso,
+              // Passiamo il codice della citta selezionata da accodare al codice fiscale generato
+              codice_citta,
+          )
+          document.querySelector('#codice_fiscale').innerText = codiceFiscale.toUpperCase();
+      }
+    
+    </script>
+    <script type="module">
+      import {dictionary} from './dictionary.js'
+      
+      // JavaScript da eseguire al caricamento della pagina
+      window.onload = () => {
+        // riferimento al campo testo per il nome della citta
+        input_citta = document.querySelector('#citta');
+        // riferimento al timer del campo citta
+        // Quando inseriamo la citta il codice attende un secondo e poi invia 
+        // ad un server la citta che abbiamo , fino a quel momento, inserito
+        //
+        // questo timer ci serve resettarlo ogni volta che inseriamo una nuova lettera entro il secondo
+        // se invece facciamo passare >=1secondo, allora il codice invia la richiesta e la elabora come segue
+        var timer_citta = null; 
+        // DIV che ospita l'elenco delle citta
+        var elenco_citta = document.querySelector('#elenco-citta');
+        // codice della citta attualmente selezionato (inizialmente è null)
+        var codice_citta = null;
+        // al campo della citta aggiungiamo un "listener", ovvero una funzione che viene
+        // chiamata quando succede un preciso evento ("input") ovvero quando viene modificato il testo del campo della citta
+        input_citta.addEventListener('input',function(e){
+          // Appena inseriamo un carattere resettiamo subito il timer
+          clearTimeout(timer_citta);
+          // Mostriamo l'elenco delle citta che inizialmente conterrà una frase di attesa
+          elenco_citta.style.display = 'block';
+          elenco_citta.textContent = 'Attendere...';
+          // Facciamo partire il timer di un secondo (a riga n.86 notare quel 1000 che significa 1000 millisecondi cioè 1 secondo)
+          // il riferimento al timer viene conservato nella variabile "timer_citta".
+          timer_citta = setTimeout(()=>{
+              // Non appena il nome della città è specificato, iniziamo a preparare il codice HTML interno del DIV che ospiterà l'elenco delle citta
+              // Per ogni risultato presente nell'elenco di città ottenute dalla chiamata al server
+              // andiamo a generare il codice HTML da aggiungere al DIV che ospita l'elenco delle citta
+              // e per ogni città letta generiamo il codice HTML a riga n.79
+            elenco_citta.innerHTML = '<ul>';
+            // Qui avviene la chiamata alla funzione dell'array "filter" che filtra le sole citta che iniziano col criterio del campo di ricerca
+            const elenco = dictionary.
+            filter( _citta => {
+              var [[codice,citta]] = Object.entries(_citta);
+              return citta.startsWith(e.target.value.toUpperCase().trim())
+            })
+            .forEach( dictionaryCitta => {
+              // Controlliamo che il valore inserito nel campo città non sia vuoto, altrimenti non facciamo partire la chiamata al server
+              // Infatti non ha senso cercare il codice di un città pari a ""
+              if( e.target.value.trim() !== '' ){
+                // citta.forEach( x => {
+                  // Conserviamo in due variabili separate la chiave ed il valore contenute nella citta, così come lette dalla risposta dal server
+                  var [[codice,citta]]= Object.entries(dictionaryCitta);
+                  elenco_citta.innerHTML += `
+                  <li><span onclick="citta_seleziona('${codice}','${citta}')">${citta}</span></li>
+                  `.trim()
+                // })
+                // Dopo aver letto tutte le citta, terminiamo il codice HTML con la chiusura della UnorderedList ovvero tag "ul"
+                elenco_citta.innerHTML += '</ul>';
+              }
+            });
+          },1000);
+        });
+      }
+
+    </script>
+  </head>
+  <body>
+    <div class="container col-3 mt-10">
+        <div class="input-group mb-3">
+          <span class="input-group-text" id="basic-addon3"
+            >Nome</span>
+          <input
+            type="text"
+            class="form-control"
+            aria-describedby="basic-addon3"
+            placeholder="Nome"
+            id="nome"
+          />
+        </div>
+        <div class="input-group mb-3">
+          <span class="input-group-text" id="basic-addon3"
+            >Cognome</span>
+          <input
+            type="text"
+            class="form-control"
+            aria-describedby="basic-addon3"
+            placeholder="Cognome"
+            id="cognome"
+          />
+        </div>
+        <div class="input-group mb-3">
+          <span class="input-group-text" id="basic-addon3"
+            >Citt&agrave;</span>
+          <input
+            type="text"
+            class="form-control"
+            aria-describedby="basic-addon3"
+            placeholder="Citta"
+            id="citta"
+          />
+          <div id="elenco-citta"></div>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon3"
+              >Data di nascita</span>
+            <input
+              type="date"
+              class="form-control"
+              aria-describedby="basic-addon3"
+              placeholder="Data di nascita"
+              id="data_nascita"
+            />
+          </div>
+          <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon3"
+              >Sesso</span>
+            <select
+              class="form-control"
+              id="sesso"
+            >
+                <option value=""></option>
+                <option value="M">Maschio</option>
+                <option value="F">Femmina</option>
+            </select>
+          </div>
+          <div class="input-group mb-3">
+            <button class="btn btn-success" onClick="calcola()">Calcola</button>
+          </div>
+          <div class="input-group mb-3">
+            <h1 id="codice_fiscale">Inserisci dati</h1>
+        </div>
+
+    </div>
+  </body>
+</html>
